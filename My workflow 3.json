@@ -1,0 +1,294 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Hiring Agent ",
+        "formDescription": "We will contact you through email if your profile meets our requirements.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Enter your full Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "LinkedIn Profile (URL)",
+              "placeholder": "http://linkedin.......",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Job you want to apply (URL)",
+              "placeholder": "http://....",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "32ec7f2a-1609-495c-a794-017b6cd867f0",
+      "name": "On form submission",
+      "webhookId": "927da99f-f733-4b81-9cf5-1f1c7b13ef85"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-bcbe5a.stack.tryrelevance.com/latest/studios/4d177ada-ab65-4bc7-a1c7-93f10d1de31e/trigger_webhook?project=d7bdf0d8-8a85-4818-8eba-e8b954155ab1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"linked_in_url\":\"{{ $json['LinkedIn Profile (URL)'] }}\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        -80
+      ],
+      "id": "b3c677e5-285f-4fb2-9b8a-f74d53fbe2e8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-bcbe5a.stack.tryrelevance.com/latest/studios/9e9d5b70-2be5-4698-a670-1163b457ae9b/trigger_webhook?project=d7bdf0d8-8a85-4818-8eba-e8b954155ab1",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"job_apply\":\"{{ $('On form submission').item.json['Job you want to apply (URL)'] }}\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        368,
+        48
+      ],
+      "id": "8991af13-defd-498d-b3c5-d9253ef71aea",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are the Hiring Agent,\nyou need to check that the candidate profile {{ $('HTTP Request').item.json.answer }} is eligible to apply for the job descripion{{ $json.answer }} is not , and generate a boolean value if his/her profile matches the job description as true and false if it doesnt matches. Generate boolean value\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        544,
+        -64
+      ],
+      "id": "730f71d2-55ca-4de8-89be-b183b2985f31",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        512,
+        176
+      ],
+      "id": "3cc4795d-a860-402b-bb0e-82ee72704b6f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "RVHvq3IhKZu2fNIf",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a284a50a-c9ff-41d6-9ce3-14d5581641c1",
+              "leftValue": false,
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "c5e29549-19c2-44ac-9fb5-7f5c099f244e",
+              "leftValue": true,
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        16
+      ],
+      "id": "d2b78dff-590b-41f6-b3eb-62363f10511d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "koushikchalla2004@gmail.com",
+        "subject": "Congrats!",
+        "emailType": "text",
+        "message": "=Dear  {{ $('On form submission').item.json['Enter your full Name'] }},\nWe are pleased to inform you that you have been selected to apply for the position. Your background and experience have stood out during our review, and we would like to invite you to formally submit your application.  Please complete the application by visiting {{ $('On form submission').item.json['Job you want to apply (URL)'] }}.\n\nIf you have any questions, feel free to reach out to us.  We look forward to receiving your application. ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        -64
+      ],
+      "id": "db62ff97-f469-4050-91f9-02bdf317a92b",
+      "name": "Send a message",
+      "webhookId": "d7f132b5-5573-4681-a1c3-00599d3b3e49",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6WbuITiHVMCKXnYD",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "koushikchalla2004@gmail.com",
+        "subject": "Sorry, Better Luck Next time!",
+        "emailType": "text",
+        "message": "=Dear {{ $('On form submission').item.json['Enter your full Name'] }},  \nThank you for your interest ! \n\nAfter carefully reviewing your profile against our eligibility criteria, we regret to inform you that you are not eligible to apply for this position at this time.  We truly appreciate the time and effort you put into considering this opportunity. We encourage you to explore other openings that may better align with your skills and experience.\n\n\nWe wish you the very best in your career journey.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        160
+      ],
+      "id": "e6c932e0-fc2c-4b1d-9475-22c1729d6583",
+      "name": "Send a message1",
+      "webhookId": "da9af9bd-940f-43ce-89ae-18261d5b2099",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "6WbuITiHVMCKXnYD",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "3392c376-49e8-40cf-9cf5-bb2b5e90b3f1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d97fa156829c4f0d122b433124b1d8b5a9e6f51650d4665cfe415a4e04f44bcc"
+  },
+  "id": "ns2whylMfH4nwlDv",
+  "tags": []
+}
