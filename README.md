@@ -1,4 +1,4 @@
-# n8n Hiring Agent Workflow
+# n8n Automated Job Eligibility Checker & Email Responder
 
 A form-based n8n workflow that:
 - Collects candidate Name, Email, LinkedIn URL, and Job URL.
@@ -13,4 +13,5 @@ A form-based n8n workflow that:
    - **Google Gemini/PaLM API** using `GEMINI_API_KEY`.
    - **Gmail OAuth2** (`GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`).
 4. (Optional) Map Gmail “Send To” to the form’s Email:
+
 
